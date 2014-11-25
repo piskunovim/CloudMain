@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">CloudMain</string>
+    <string name="login">Логин</string>
+    <string name='email'>E-mail</string>
+    <string name="password">Пароль</string>
+    <string name="action_settings">Settings</string>
+
+</resources>
