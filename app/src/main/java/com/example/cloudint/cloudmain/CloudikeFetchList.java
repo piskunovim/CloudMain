@@ -19,7 +19,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONArray;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -33,26 +32,24 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by PiskunovI on 25.11.2014.
  */
-public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
+public class CloudikeFetchList extends AsyncTask<String,Void,FilesArray> {
 
     String LOG_TAG = "CloudikeFetchList";
-    //String url = "https://be-saas.cloudike.com/api/1/metadata_full_listing/";
 
     @Override
-    protected Void doInBackground(String... getParams) {
+    protected FilesArray doInBackground(String... getParams) {
         ArrayList<String> metadataParams = new ArrayList<String>();
 
         try {
 
-            for(String parameter : getParams){
-                metadataParams.add(parameter);
-            }
+            Collections.addAll(metadataParams, getParams);
 
             String token = metadataParams.get(0);
 
@@ -68,15 +65,21 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
 
             //Get jsonURL
             String jsonURL = cloudikeRequest("jsonURL", token, url, listing_request_id);
+            int count = 0;
 
-            while(jsonURL.indexOf("progress") != -1)
+            while(jsonURL.indexOf("progress") != -1) {
+                Log.d(LOG_TAG, jsonURL);
                 jsonURL = cloudikeRequest("jsonURL", token, url, listing_request_id);
-
-            Log.d(LOG_TAG, jsonURL);
+                if (count >= 20){
+                    break;
+                }
+                else{
+                    count++;
+                }
+            }
+            //Log.d(LOG_TAG, jsonURL);
 
             jsonURL = getJsonURL(jsonURL);
-
-
 
             Log.d(LOG_TAG, jsonURL);
 
@@ -85,12 +88,9 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
             Log.d(LOG_TAG, jsonObject);
 
             Gson gson = new GsonBuilder().registerTypeAdapter(FilesArray.class, new CustomDeserializer()).create();
-            FilesArray fa = gson.fromJson(jsonObject,FilesArray.class);
 
-            for (int i = 0; i < fa.items.size(); i++) {
-                Log.d(LOG_TAG, "Files path: " + fa.items.get(i).path);
-                Log.d(LOG_TAG, "Files MB: " + fa.items.get(i).mbytes.toString());
-            }
+            return gson.fromJson(jsonObject,FilesArray.class);
+
         }
         catch (MalformedURLException e) {
             e.printStackTrace();
@@ -127,22 +127,16 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
         return total.toString();
     }
 
+    //url
     String getJsonURL(String response) {
-        try {
             JsonObject o = new JsonParser().parse(response).getAsJsonObject();
-            String url = o.getAsJsonPrimitive("url").toString().substring(1, o.getAsJsonPrimitive("url").toString().length() - 1);
-            return url;
-        }catch (Exception e){
-            //e.printStackTrace();
-            getJsonURL(response);
-        }
-      return "";
+            return o.getAsJsonPrimitive("url").toString().substring(1, o.getAsJsonPrimitive("url").toString().length() - 1);
     }
 
+    //listing_request
     String getListingRequestId(String response){
         JsonObject o = new JsonParser().parse(response).getAsJsonObject();
-        String listing_request = o.getAsJsonPrimitive("listing_request_id").toString().substring(1,o.getAsJsonPrimitive("listing_request_id").toString().length()-1);
-        return listing_request;
+        return o.getAsJsonPrimitive("listing_request_id").toString().substring(1,o.getAsJsonPrimitive("listing_request_id").toString().length()-1);
     }
 
     String getJsonObject(String _url) throws IOException {
@@ -187,13 +181,10 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
         for (JsonElement element : array) {
             JsonObject object1 = element.getAsJsonObject();
             file = new CloudikeObject();
-            Log.d(LOG_TAG, "folder = " + object1.get("folder").getAsString());
-            file.folder = object1.get("folder").getAsBoolean();
-            if (file.folder){
+            file.isFolder = object1.get("folder").getAsBoolean();
+            if (file.isFolder){
                 JsonArray array2 = object1.get("content").getAsJsonArray();
-
                 result.addAll(getElements(array2));
-
             }
             else {
                 file.mbytes = String.valueOf(new BigDecimal((object1.get("bytes").getAsDouble()/1024/1024)).setScale(2, RoundingMode.HALF_EVEN));

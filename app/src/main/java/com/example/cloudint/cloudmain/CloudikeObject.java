@@ -1,7 +1,5 @@
 package com.example.cloudint.cloudmain;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
 /**
@@ -9,15 +7,12 @@ import java.util.ArrayList;
  */
 public class CloudikeObject {
     String path;
-    Boolean folder;
+    Boolean isFolder;
     String mbytes;
-    ArrayList<CloudikeObject> result = new ArrayList<CloudikeObject>();
-
 }
 
 class FilesArray{
 
-    String LOG_TAG = "FilesArray";
     ArrayList<CloudikeObject> items = new ArrayList<CloudikeObject>();
 
     FilesArray(ArrayList<CloudikeObject> result)

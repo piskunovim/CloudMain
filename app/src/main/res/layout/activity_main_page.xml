@@ -6,8 +6,26 @@
 
     <TextView
         android:id="@+id/token"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Token: "/>
+
+    <Button
+        android:id="@+id/buttonRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Обновить" />
+
+   <Button
+        android:id="@+id/buttonLogout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Token: "/>
+        android:text="Выйти" />
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>

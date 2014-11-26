@@ -3,12 +3,10 @@ package com.example.cloudint.cloudmain;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -18,17 +16,12 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+
 
 /**
  * Created by PiskunovI on 21.11.2014.
@@ -36,15 +29,13 @@ import java.util.concurrent.ExecutionException;
 public class CloudikeFetchToken extends AsyncTask<String,Void,String> {
 
     String LOG_TAG = "CloudLikeFetch";
-    private String token = new String();
+    private String token = "";
 
     @Override
     protected String doInBackground(String... params) {
         ArrayList<String> signInParams = new ArrayList<String>();
 
-        for(String parameter : params){
-            signInParams.add(parameter);
-        }
+        Collections.addAll(signInParams, params);
 
         String email = signInParams.get(0);
         String password = signInParams.get(1);

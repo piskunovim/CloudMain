@@ -28,4 +28,11 @@ public class CloudikePreferences {
         String savedText = cloudPref.getString(title, "");
         return savedText;
     }
+
+    void removePref(String title){
+        cloudPref = context.getSharedPreferences("CloudikePref", Context.MODE_PRIVATE);
+        Editor ed = cloudPref.edit();
+        ed.remove(title);
+        ed.commit();
+    }
 }

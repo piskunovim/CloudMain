@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,7 +29,6 @@ public class MainActivity extends ActionBarActivity {
 
     @OnClick(R.id.send_button)
     public void submit(View view) {
-       button.setText("Подождите...");
        sendRequest(username.getText().toString(),password.getText().toString());
        signIn();
     }
@@ -44,19 +42,24 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
-
+        if ( cloudikePreferences.loadPref("token").length() > 0){
+            Intent intent = new Intent(this, MainPageActivity.class);
+            startActivity(intent);
+            this.finish();
+        }
     }
 
     void sendRequest(String username, String password)
     {
-        Log.d(LOG_TAG, "Username: " + username + " Password: " + password);
+        //Log.d(LOG_TAG, "Username: " + username + " Password: " + password);
 
         CloudikeFetchToken cloudikeFetch = new CloudikeFetchToken();
         cloudikeFetch.execute(username,password);
 
-        String token = new String();
+        String token = "";
         try {
             token = cloudikeFetch.get();
+            cloudikePreferences.savePref("token", token);
         }
         catch (InterruptedException e) {
             e.printStackTrace();
@@ -64,12 +67,6 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
 
-        Log.d(LOG_TAG, token);
-
-        cloudikePreferences.savePref("token", token);
-
-
-        button.setText("Войти");
     }
 
     void signIn(){
@@ -109,9 +106,6 @@ public class MainActivity extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 }
