@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CloudMain.iml" filepath="$PROJECT_DIR$/CloudMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CloudikeMain.iml" filepath="$PROJECT_DIR$/CloudikeMain.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
