@@ -3,7 +3,14 @@ package com.example.cloudint.cloudmain;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import org.apache.http.HttpResponse;
@@ -12,12 +19,16 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -58,9 +69,14 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
             //Get jsonURL
             String jsonURL = cloudikeRequest("jsonURL", token, url, listing_request_id);
 
+            while(jsonURL.indexOf("progress") != -1)
+                jsonURL = cloudikeRequest("jsonURL", token, url, listing_request_id);
+
             Log.d(LOG_TAG, jsonURL);
 
             jsonURL = getJsonURL(jsonURL);
+
+
 
             Log.d(LOG_TAG, jsonURL);
 
@@ -68,9 +84,13 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
 
             Log.d(LOG_TAG, jsonObject);
 
+            Gson gson = new GsonBuilder().registerTypeAdapter(FilesArray.class, new CustomDeserializer()).create();
+            FilesArray fa = gson.fromJson(jsonObject,FilesArray.class);
 
-
-
+            for (int i = 0; i < fa.items.size(); i++) {
+                Log.d(LOG_TAG, "Files path: " + fa.items.get(i).path);
+                Log.d(LOG_TAG, "Files MB: " + fa.items.get(i).mbytes.toString());
+            }
         }
         catch (MalformedURLException e) {
             e.printStackTrace();
@@ -113,7 +133,7 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
             String url = o.getAsJsonPrimitive("url").toString().substring(1, o.getAsJsonPrimitive("url").toString().length() - 1);
             return url;
         }catch (Exception e){
-            e.printStackTrace();
+            //e.printStackTrace();
             getJsonURL(response);
         }
       return "";
@@ -142,6 +162,47 @@ public class CloudikeFetchList extends AsyncTask<String,Void,Void> {
             connection.disconnect();
         }
 
+    }
+
+
+    class CustomDeserializer implements JsonDeserializer {
+
+        @Override
+        public FilesArray deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            ArrayList<CloudikeObject> result = new ArrayList<CloudikeObject>();
+            JsonObject object = json.getAsJsonObject();
+            JsonArray array = object.getAsJsonArray("content");
+
+            result.addAll(getElements(array));
+
+            return new FilesArray(result);
+        }
+    }
+
+    ArrayList<CloudikeObject> getElements(JsonArray array){
+
+        ArrayList<CloudikeObject> result = new ArrayList<CloudikeObject>();
+        CloudikeObject file;
+
+        for (JsonElement element : array) {
+            JsonObject object1 = element.getAsJsonObject();
+            file = new CloudikeObject();
+            Log.d(LOG_TAG, "folder = " + object1.get("folder").getAsString());
+            file.folder = object1.get("folder").getAsBoolean();
+            if (file.folder){
+                JsonArray array2 = object1.get("content").getAsJsonArray();
+
+                result.addAll(getElements(array2));
+
+            }
+            else {
+                file.mbytes = String.valueOf(new BigDecimal((object1.get("bytes").getAsDouble()/1024/1024)).setScale(2, RoundingMode.HALF_EVEN));
+                file.path = object1.get("path").getAsString();
+                result.add(file);
+            }
+        }
+
+        return new ArrayList<CloudikeObject>(result);
     }
 
 
